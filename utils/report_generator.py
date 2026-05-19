@@ -1,0 +1,144 @@
+"""
+DataCleaner AI — Report Generator
+Generates PDF and JSON reports of cleaning operations.
+"""
+
+import json
+import io
+from datetime import datetime
+from typing import Dict, Any
+import pandas as pd
+
+
+def generate_json_report(
+    original_df: pd.DataFrame,
+    cleaned_df: pd.DataFrame,
+    profile_before: Dict,
+    profile_after: Dict,
+    cleaning_log: list,
+) -> str:
+    """Generate a comprehensive JSON cleaning report."""
+    report = {
+        "report_title": "DataCleaner AI — Preprocessing Report",
+        "generated_at": datetime.now().isoformat(),
+        "dataset_summary": {
+            "before": {
+                "rows": profile_before.get("rows", 0),
+                "columns": profile_before.get("columns", 0),
+                "nulls": profile_before.get("total_nulls", 0),
+                "duplicates": profile_before.get("duplicate_rows", 0),
+                "memory_mb": profile_before.get("memory_usage_mb", 0),
+                "quality_score": profile_before.get("quality_score", 0),
+            },
+            "after": {
+                "rows": profile_after.get("rows", 0),
+                "columns": profile_after.get("columns", 0),
+                "nulls": profile_after.get("total_nulls", 0),
+                "duplicates": profile_after.get("duplicate_rows", 0),
+                "memory_mb": profile_after.get("memory_usage_mb", 0),
+                "quality_score": profile_after.get("quality_score", 0),
+            },
+        },
+        "cleaning_operations": cleaning_log,
+        "improvements": {
+            "rows_removed": profile_before.get("rows", 0) - profile_after.get("rows", 0),
+            "nulls_fixed": profile_before.get("total_nulls", 0) - profile_after.get("total_nulls", 0),
+            "quality_improvement": profile_after.get("quality_score", 0) - profile_before.get("quality_score", 0),
+        },
+    }
+    return json.dumps(report, indent=2, default=str)
+
+
+def generate_pdf_report(
+    original_df: pd.DataFrame,
+    cleaned_df: pd.DataFrame,
+    profile_before: Dict,
+    profile_after: Dict,
+    cleaning_log: list,
+) -> bytes:
+    """Generate a PDF report using fpdf2."""
+    try:
+        from fpdf import FPDF
+
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+
+        # Header
+        pdf.set_font("Helvetica", "B", 20)
+        pdf.set_text_color(139, 92, 246)
+        pdf.cell(0, 12, "DataCleaner AI - Preprocessing Report", ln=True, align="C")
+
+        pdf.set_font("Helvetica", "", 10)
+        pdf.set_text_color(100, 100, 120)
+        pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True, align="C")
+        pdf.ln(8)
+
+        # Section: Summary
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.set_text_color(30, 30, 60)
+        pdf.cell(0, 10, "Dataset Summary", ln=True)
+        pdf.set_draw_color(139, 92, 246)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(3)
+
+        pdf.set_font("Helvetica", "", 10)
+        pdf.set_text_color(50, 50, 80)
+
+        rows = [
+            ("Metric", "Before", "After"),
+            ("Rows", str(profile_before.get("rows", 0)), str(profile_after.get("rows", 0))),
+            ("Columns", str(profile_before.get("columns", 0)), str(profile_after.get("columns", 0))),
+            ("Missing Values", str(profile_before.get("total_nulls", 0)), str(profile_after.get("total_nulls", 0))),
+            ("Duplicate Rows", str(profile_before.get("duplicate_rows", 0)), str(profile_after.get("duplicate_rows", 0))),
+            ("Memory (MB)", str(profile_before.get("memory_usage_mb", 0)), str(profile_after.get("memory_usage_mb", 0))),
+            ("Quality Score", f"{profile_before.get('quality_score', 0)}/100", f"{profile_after.get('quality_score', 0)}/100"),
+        ]
+
+        col_widths = [70, 55, 55]
+        for i, row in enumerate(rows):
+            if i == 0:
+                pdf.set_font("Helvetica", "B", 10)
+                pdf.set_fill_color(240, 235, 255)
+                fill = True
+            else:
+                pdf.set_font("Helvetica", "", 10)
+                pdf.set_fill_color(248, 248, 255)
+                fill = (i % 2 == 0)
+            for j, cell in enumerate(row):
+                pdf.cell(col_widths[j], 8, cell, border=1, fill=fill)
+            pdf.ln()
+        pdf.ln(6)
+
+        # Section: Cleaning Operations
+        if cleaning_log:
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(30, 30, 60)
+            pdf.cell(0, 10, "Cleaning Operations Performed", ln=True)
+            pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+            pdf.ln(3)
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_text_color(50, 50, 80)
+            for i, op in enumerate(cleaning_log, 1):
+                pdf.cell(0, 6, f"{i}. {op}", ln=True)
+            pdf.ln(6)
+
+        # Footer
+        pdf.set_font("Helvetica", "I", 8)
+        pdf.set_text_color(150, 150, 170)
+        pdf.cell(0, 6, "Generated by DataCleaner AI - Premium AI Data Preprocessing Platform", ln=True, align="C")
+
+        return bytes(pdf.output())
+
+    except ImportError:
+        # Fallback: return empty bytes with error note
+        return b"PDF generation requires fpdf2. Install with: pip install fpdf2"
+
+
+def generate_cleaning_summary(cleaning_log: list) -> Dict[str, Any]:
+    """Summarize all cleaning operations."""
+    return {
+        "total_operations": len(cleaning_log),
+        "operations": cleaning_log,
+        "generated_at": datetime.now().isoformat(),
+    }
