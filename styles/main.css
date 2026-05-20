@@ -571,7 +571,73 @@ code, pre {
 /* ── HIDE STREAMLIT DEFAULT UI ───────────────────────────── */
 #MainMenu { visibility: hidden; }
 footer    { visibility: hidden; }
-header    { visibility: hidden; }
+
+/* Keep header container visible and transparent so children (like the sidebar toggle) render perfectly */
+header, [data-testid="stHeader"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  visibility: visible !important;
+  height: 0px !important;
+  overflow: visible !important;
+}
+
+/* Hide only developer tools in the header */
+[data-testid="stDeployButton"],
+[data-testid="stMainMenu"],
+[data-testid="stConnectionStatus"] {
+  visibility: hidden !important;
+  display: none !important;
+}
+
+/* Keep the sidebar expand toggle button permanently visible and style it to match the premium theme */
+[data-testid="collapsedControl"] {
+  visibility: visible !important;
+  display: flex !important;
+  background: rgba(10, 15, 46, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid var(--accent-purple) !important;
+  border-left: none !important;
+  border-radius: 0 16px 16px 0 !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.4) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  left: 0px !important;
+  top: 15px !important;
+  width: 44px !important;
+  height: 44px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 999999 !important;
+}
+
+[data-testid="collapsedControl"]:hover {
+  background: rgba(139, 92, 246, 0.25) !important;
+  border-color: rgba(6, 182, 212, 0.6) !important;
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.7), 0 0 45px rgba(6, 182, 212, 0.3) !important;
+  width: 48px !important;
+}
+
+[data-testid="collapsedControl"] button {
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+[data-testid="collapsedControl"] svg {
+  color: var(--text-primary) !important;
+  fill: var(--text-primary) !important;
+  width: 22px !important;
+  height: 22px !important;
+}
 
 /* ── PLOTLY CHARTS ───────────────────────────────────────── */
 .js-plotly-plot .plotly {
