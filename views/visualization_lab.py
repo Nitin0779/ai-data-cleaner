@@ -251,7 +251,11 @@ def _render_3d_tab(df, numeric_cols):
     with c2: y = st.selectbox("Y-Axis", numeric_cols, index=1, key="3d_y")
     with c3: z = st.selectbox("Z-Axis", numeric_cols, index=2, key="3d_z")
 
-    sample_df = df[[x, y, z]].dropna().sample(min(1500, len(df)))
+    dropna_df = df[[x, y, z]].dropna()
+    if len(dropna_df) == 0:
+        st.warning("No rows with complete data for the selected columns.")
+        return
+    sample_df = dropna_df.sample(min(1500, len(dropna_df)))
 
     fig = go.Figure(data=[go.Scatter3d(
         x=sample_df[x],
